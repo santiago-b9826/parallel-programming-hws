@@ -23,7 +23,7 @@
 #include <stdlib.h>
 #include <omp.h>
 
-double CalcPi(int n);
+void CalcPi(double *fPi, int n);
 
 int main(int argc, char **argv)
 {
@@ -31,12 +31,13 @@ int main(int argc, char **argv)
     double fPi = 0.0;
     double fTimeStart, fTimeEnd;
 
-    int n = argv != NULL ? strtol(argv[1], NULL, 10) : 2147483647;
+    int thread_count = strtol(argv[1], NULL, 10);
+    int n = argv != NULL ? strtol(argv[2], NULL, 10) : 2147483647;
 
     fTimeStart = omp_get_wtime();
 
-    /* the calculation is done here*/
-    fPi = CalcPi(n);
+#pragma omp parallel num_threads(thread_count)
+    CalcPi(&fPi, n);
 
     fTimeEnd = omp_get_wtime();
     printf("%.20f\t%.20f\t%.20f\n",fPi, fabs(fPi - fPi25DT), fTimeEnd - fTimeStart);
@@ -51,17 +52,24 @@ double f(double a)
     return (4.0 / (1.0 + a * a));
 }
 
-double CalcPi(int n)
+void CalcPi(double *fPi, int n)
 {
+    int my_rank = omp_get_thread_num();
+    int thread_count = omp_get_num_threads();
+    int local_n = n / thread_count;
+
     const double fH = 1.0 / (double)n;
     double fSum = 0.0;
     double fX;
+    double aux = 0.0;
     int i;
 
-    for (i = 0; i < n; i += 1)
+    for (i = 0; i < local_n; i += 1)
     {
-        fX = fH * ((double)i + 0.5);
+        fX = fH * ((double)(my_rank * local_n + i) + 0.5);
         fSum += f(fX);
     }
-    return fH * fSum;
+    aux = fH * fSum;
+#pragma omp critical
+    *fPi += aux;
 }
