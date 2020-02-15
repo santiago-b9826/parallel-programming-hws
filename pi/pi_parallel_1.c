@@ -32,7 +32,7 @@ int main(int argc, char **argv)
     double fTimeStart, fTimeEnd;
 
     int thread_count = strtol(argv[1], NULL, 10);
-    int n = argv != NULL ? strtol(argv[2], NULL, 10) : 2147483647;
+    int n = argv[2] != NULL ? strtol(argv[2], NULL, 10) : 2147483647;
 
     fTimeStart = omp_get_wtime();
 
@@ -40,9 +40,8 @@ int main(int argc, char **argv)
     CalcPi(&fPi, n);
 
     fTimeEnd = omp_get_wtime();
-    printf("%.20f\t%.20f\t%.20f\n",fPi, fabs(fPi - fPi25DT), fTimeEnd - fTimeStart);
-    // printf("Pi is approximately: \t%.20f \nError: \t\t\t%.20f\n", fPi, fabs(fPi - fPi25DT));
-    // printf("Wall clock time: \t%.20f\n", fTimeEnd - fTimeStart);
+    printf("Pi is approximately: \t%.20f \nError: \t\t\t%.20f\n", fPi, fabs(fPi - fPi25DT));
+    printf("Wall clock time: \t%.20f\n", fTimeEnd - fTimeStart);
 
     return 0;
 }
