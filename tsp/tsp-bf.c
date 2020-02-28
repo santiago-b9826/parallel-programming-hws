@@ -26,7 +26,7 @@
 #include <string.h>
 #include <omp.h>
 
-#define DEBUG
+// #define DEBUG
 
 // global variable containing the minimum cost found
 int min_cost = INT_MAX;

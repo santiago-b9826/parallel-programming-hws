@@ -36,6 +36,7 @@ int *best_tour;
 void swap(int *x, int *y);
 int compute_cost(int *tour, int *dist, int n);
 void brute_force(int *tour, int *dist, int start, int end);
+int *copy(int *dist, int size);
 
 int main(int argc, char *argv[])
 {
@@ -104,7 +105,9 @@ int main(int argc, char *argv[])
 #pragma omp parallel
     {
 #pragma omp single
-        brute_force(tour, dist, 0, size - 1);
+        {
+            brute_force(tour, dist, 0, size - 1);
+        }
     }
 
     time = omp_get_wtime() - time;
@@ -187,11 +190,39 @@ void brute_force(int *tour, int *dist, int start, int end)
     }
     else
     {
+
+        int *aux_tour;
         for (i = start; i <= end; i++)
         {
             swap(&tour[start], &tour[i]);
-            brute_force(tour, dist, start + 1, end);
+
+            if (end - start + 1 < 10)
+            {
+                aux_tour = copy(tour, end + 1);
+#pragma omp task
+                {
+                    brute_force(aux_tour, dist, start + 1, end);
+                }
+            }
+            else
+            {
+                brute_force(tour, dist, start + 1, end);
+            }
+
             swap(&tour[start], &tour[i]);
         }
     }
+}
+
+int *copy(int *tour, int size)
+{
+    int *copy = (int *)malloc(sizeof(int) * size);
+    int i;
+
+    for (i = 0; i < size; i++)
+    {
+        copy[i] = tour[i];
+    }
+
+    return copy;
 }
