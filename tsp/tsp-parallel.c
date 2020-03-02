@@ -36,7 +36,7 @@ int *best_tour;
 void swap(int *x, int *y);
 int compute_cost(int *tour, int *dist, int n);
 void brute_force(int *tour, int *dist, int start, int end);
-int *copy(int *dist, int size);
+void brute_force_sec(int *tour, int *dist, int start, int end);
 
 int main(int argc, char *argv[])
 {
@@ -190,39 +190,72 @@ void brute_force(int *tour, int *dist, int start, int end)
     }
     else
     {
+        int aux_tour[end + 1][sizeof(int) * (end + 1)];
 
-        int *aux_tour;
         for (i = start; i <= end; i++)
         {
             swap(&tour[start], &tour[i]);
 
-            if (end - start + 1 < 10)
+            if (start == 0)
             {
-                aux_tour = copy(tour, end + 1);
-#pragma omp task
-                {
-                    brute_force(aux_tour, dist, start + 1, end);
-                }
+                brute_force(tour, dist, start + 1, end);
             }
             else
             {
-                brute_force(tour, dist, start + 1, end);
+                memcpy(aux_tour[i], tour, sizeof(int) * (end + 1));
+#pragma omp task
+                {
+                    brute_force_sec(aux_tour[i], dist, start + 1, end);
+                }
             }
 
             swap(&tour[start], &tour[i]);
         }
+
+        //         int *aux_tour[end + 1];
+        //         for (i = start; i <= end; i++)
+        //         {
+        //             swap(&tour[start], &tour[i]);
+
+        //             if (end - start + 1 < 10)
+        //             {
+        //                 aux_tour[i] = copy(tour, end + 1);
+        // #pragma omp task
+        //                 {
+        //                     brute_force(aux_tour[i], dist, start + 1, end);
+        //                 }
+        //             }
+        //             else
+        //             {
+        //                 brute_force(tour, dist, start + 1, end);
+        //             }
+
+        //             swap(&tour[start], &tour[i]);
+        //         }
     }
 }
 
-int *copy(int *tour, int size)
+void brute_force_sec(int *tour, int *dist, int start, int end)
 {
-    int *copy = (int *)malloc(sizeof(int) * size);
-    int i;
-
-    for (i = 0; i < size; i++)
+    int i, cost;
+    if (start == end)
     {
-        copy[i] = tour[i];
+        // Compute cost of each permution
+        cost = compute_cost(tour, dist, end + 1);
+        if (min_cost > cost)
+        {
+            // Best solution found - copy cost and tour
+            min_cost = cost;
+            memcpy(best_tour, tour, sizeof(int) * (end + 1));
+        }
     }
-
-    return copy;
+    else
+    {
+        for (i = start; i <= end; i++)
+        {
+            swap(&tour[start], &tour[i]);
+            brute_force(tour, dist, start + 1, end);
+            swap(&tour[start], &tour[i]);
+        }
+    }
 }
