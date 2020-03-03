@@ -167,94 +167,73 @@ int compute_cost(int *tour, int *dist, int size)
  *  \brief brute_force
  *  Brute force algorithm to solve the TSP problem
  *  This function recursively computes all possible permutations for
- *  a given TSP instance and updates the minimum cost and best vector to 
- *  global variables (min_cost, best_tour)
- *  \param tour pointer to the tour vector}
+ *  a given TSP instance and 
+ *  \param tour pointer to the tour vector
  *  \param dist pointer to the distance matrix
  *  \param start tour vector initial position 
  *  \param end tour vector last position 
  */
 void brute_force(int *tour, int *dist, int start, int end)
 {
-    int i, cost;
-    if (start == end)
-    {
-        // Compute cost of each permution
-        cost = compute_cost(tour, dist, end + 1);
-        if (min_cost > cost)
-        {
-            // Best solution found - copy cost and tour
-            min_cost = cost;
-            memcpy(best_tour, tour, sizeof(int) * (end + 1));
-        }
-    }
-    else
-    {
-        int aux_tour[end + 1][sizeof(int) * (end + 1)];
+    int i;
+    int aux_tour[end + 1][sizeof(int) * (end + 1)];
 
-        for (i = start; i <= end; i++)
-        {
-            swap(&tour[start], &tour[i]);
-
-            if (start == 0)
-            {
-                brute_force(tour, dist, start + 1, end);
-            }
-            else
-            {
-                memcpy(aux_tour[i], tour, sizeof(int) * (end + 1));
-#pragma omp task
-                {
-                    brute_force_sec(aux_tour[i], dist, start + 1, end);
-                }
-            }
-
-            swap(&tour[start], &tour[i]);
-        }
-
-        //         int *aux_tour[end + 1];
-        //         for (i = start; i <= end; i++)
-        //         {
-        //             swap(&tour[start], &tour[i]);
-
-        //             if (end - start + 1 < 10)
-        //             {
-        //                 aux_tour[i] = copy(tour, end + 1);
-        // #pragma omp task
-        //                 {
-        //                     brute_force(aux_tour[i], dist, start + 1, end);
-        //                 }
-        //             }
-        //             else
-        //             {
-        //                 brute_force(tour, dist, start + 1, end);
-        //             }
-
-        //             swap(&tour[start], &tour[i]);
-        //         }
-    }
-}
-
-void brute_force_sec(int *tour, int *dist, int start, int end)
-{
-    int i, cost;
-    if (start == end)
-    {
-        // Compute cost of each permution
-        cost = compute_cost(tour, dist, end + 1);
-        if (min_cost > cost)
-        {
-            // Best solution found - copy cost and tour
-            min_cost = cost;
-            memcpy(best_tour, tour, sizeof(int) * (end + 1));
-        }
-    }
-    else
+    if (start == 0)
     {
         for (i = start; i <= end; i++)
         {
             swap(&tour[start], &tour[i]);
             brute_force(tour, dist, start + 1, end);
+            swap(&tour[start], &tour[i]);
+        }
+    }
+    else
+    {
+        for (i = start; i <= end; i++)
+        {
+            swap(&tour[start], &tour[i]);
+            memcpy(aux_tour[i], tour, sizeof(int) * (end + 1));
+#pragma omp task
+            {
+                brute_force_sec(aux_tour[i], dist, start + 1, end);
+            }
+            swap(&tour[start], &tour[i]);
+        }
+    }
+}
+
+/**
+ *  \brief brute_force_sec
+ *  Brute force algorithm to solve the TSP problem
+ *  This function recursively computes all possible permutations for
+ *  a given TSP instance and updates the minimum cost and best vector to 
+ *  global variables (min_cost, best_tour)
+ *  \param tour pointer to the tour vector
+ *  \param dist pointer to the distance matrix
+ *  \param start tour vector initial position 
+ *  \param end tour vector last position 
+ */
+void brute_force_sec(int *tour, int *dist, int start, int end)
+{
+    int i, cost;
+
+    if (start == end)
+    {
+        // Compute cost of each permution
+        cost = compute_cost(tour, dist, end + 1);
+        if (min_cost > cost)
+        {
+            // Best solution found - copy cost and tour
+            min_cost = cost;
+            memcpy(best_tour, tour, sizeof(int) * (end + 1));
+        }
+    }
+    else
+    {
+        for (i = start; i <= end; i++)
+        {
+            swap(&tour[start], &tour[i]);
+            brute_force_sec(tour, dist, start + 1, end);
             swap(&tour[start], &tour[i]);
         }
     }
