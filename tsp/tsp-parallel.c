@@ -102,6 +102,7 @@ int main(int argc, char *argv[])
     }
 
     time = omp_get_wtime();
+
 #pragma omp parallel
     {
 #pragma omp single
@@ -152,6 +153,7 @@ int compute_cost(int *tour, int *dist, int size)
         index = tour[i % size] * size + tour[(i + 1) % size];
         cost += dist[index];
     }
+
 #ifdef DEBUG
     printf("Tour ");
     for (i = 0; i < size; i++)
@@ -238,3 +240,72 @@ void brute_force_sec(int *tour, int *dist, int start, int end)
         }
     }
 }
+
+// void brute_force(int *tour, int *dist, int start, int end)
+// {
+//     int i, cost;
+
+//     if (start != end)
+//     {
+//         if (end - start > 10)
+//         {
+//             int aux_tour[end + 1][sizeof(int) * (end + 1)];
+//             for (i = start; i <= end; i++)
+//             {
+//                 swap(&tour[start], &tour[i]);
+//                 memcpy(aux_tour[i], tour, sizeof(int) * (end + 1));
+// #pragma omp task
+//                 {
+//                     brute_force(aux_tour[i], dist, start + 1, end);
+//                 }
+//                 swap(&tour[start], &tour[i]);
+//             }
+//         }
+//         else
+//         {
+//             for (i = start; i <= end; i++)
+//             {
+//                 swap(&tour[start], &tour[i]);
+//                 brute_force(tour, dist, start + 1, end);
+//                 swap(&tour[start], &tour[i]);
+//             }
+//         }
+//     }
+//     else
+//     {
+//         if (start % 2 == 0)
+//         {
+
+//             // Compute cost of each permution
+//             int *aux_tour_cc = (int *)malloc(sizeof(int) * (end + 1));
+//             memcpy(aux_tour_cc, tour, sizeof(int) * (end + 1));
+
+// #pragma omp task
+//             {
+//                 cost = compute_cost(aux_tour_cc, dist, end + 1);
+
+//                 if (min_cost > cost)
+//                 {
+// // Best solution found - copy cost and tour
+// #pragma omp critical
+//                     {
+//                         min_cost = cost;
+//                         memcpy(best_tour, tour, sizeof(int) * (end + 1));
+//                     }
+//                 }
+//                 free(aux_tour_cc);
+//             }
+//         }
+//         else
+//         {
+//             // Compute cost of each permution
+//             cost = compute_cost(tour, dist, end + 1);
+//             if (min_cost > cost)
+//             {
+//                 // Best solution found - copy cost and tour
+//                 min_cost = cost;
+//                 memcpy(best_tour, tour, sizeof(int) * (end + 1));
+//             }
+//         }
+//     }
+// }
