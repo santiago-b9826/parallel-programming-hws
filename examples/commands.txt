@@ -1,0 +1,3 @@
+Map -> ./launch map-example array_lenght constant_a
+Reduce -> ./launch reduce-example array_lenght upper_limit reduce_option
+Map-Reduce -> ./launch map-reduce-example array_lenght upper_limit
